@@ -23,9 +23,11 @@ class ImageSliceViewer3D:
 
     """
 
-    def __init__(self, volumes, alphas=None, figsize=(8,8), cmap='Greys_r',
+    def __init__(self, volumes, title=None, alphas=None, figsize=(4,4), cmap='Greys_r',
                  cmin=None, cmax=None):
+        
         self.volumes = volumes
+        self.title = title
         self.figsize = figsize
         self.cmap = cmap
         self.cmin = cmin
@@ -37,12 +39,19 @@ class ImageSliceViewer3D:
             self.alphas = alphas
 
         # Call to select slice plane
-        _ = ipyw.interact(self.view_selection, view=ipyw.RadioButtons(
-            options=['x-y','y-z', 'z-x'], value='x-y',
-            description='Slice plane:', disabled=False,
-            style={'description_width': 'initial'}))
+        _ = ipyw.interact(
+            self.view_selection, 
+            view=ipyw.RadioButtons(
+                options=['x-y','y-z', 'z-x'], 
+                value='x-y',
+                description='Slice plane:', 
+                disabled=False,
+                # style={'description_width': 'initial'}
+            )
+        )
 
     def view_selection(self, view):
+
         # Transpose the volume to orient according to the slice plane selection
         #orient = {"y-z":[1,2,0], "z-x":[2,0,1], "x-y": [0,1,2]}
         orient = {"y-z":[2,1,0], "z-x":[0,2,1], "x-y": [0,1,2]}
@@ -62,16 +71,24 @@ class ImageSliceViewer3D:
         ipyw.interact(self.plot_slice,
             z=ipyw.IntSlider(min=0, max=maxZ, step=1, continuous_update=False,
             description='Slice index:',
-            layout=ipyw.Layout(width='95%')),)#, height='12px')),)
+            layout=ipyw.Layout(width='95%')),)
 
     def plot_slice(self, z):
 
         # Plot slice for the given plane and slice
         self.fig = plt.figure(figsize=self.figsize)
 
+        plt.title(self.title)
+
         for vol, alpha in zip(self.vols, self.alphas):
-            plt.imshow(vol[:,:,z], cmap=plt.get_cmap(self.cmap), alpha=alpha,
-                       vmin=self.cmin, vmax=self.cmax)
+            
+            plt.imshow(
+                vol[:,:,z], 
+                cmap=plt.get_cmap(self.cmap), 
+                alpha=alpha,
+                vmin=self.cmin, 
+                vmax=self.cmax
+            )
 
         #self.fig.canvas.draw()
         plt.show()
