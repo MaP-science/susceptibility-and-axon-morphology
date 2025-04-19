@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import ipywidgets as ipyw
+import ipywidgets
 
 class ImageSliceViewer3D:
     """
@@ -39,21 +39,19 @@ class ImageSliceViewer3D:
             self.alphas = alphas
 
         # Call to select slice plane
-        _ = ipyw.interact(
+        _ = ipywidgets.interact(
             self.view_selection, 
-            view=ipyw.RadioButtons(
+            view=ipywidgets.RadioButtons(
                 options=['x-y','y-z', 'z-x'], 
                 value='x-y',
                 description='Slice plane:', 
                 disabled=False,
-                # style={'description_width': 'initial'}
             )
         )
 
     def view_selection(self, view):
 
         # Transpose the volume to orient according to the slice plane selection
-        #orient = {"y-z":[1,2,0], "z-x":[2,0,1], "x-y": [0,1,2]}
         orient = {"y-z":[2,1,0], "z-x":[0,2,1], "x-y": [0,1,2]}
 
         self.vols = []
@@ -68,10 +66,16 @@ class ImageSliceViewer3D:
         maxZ = self.vols[0].shape[2] - 1
 
         # Call to view a slice within the selected slice plane
-        ipyw.interact(self.plot_slice,
-            z=ipyw.IntSlider(min=0, max=maxZ, step=1, continuous_update=False,
-            description='Slice index:',
-            layout=ipyw.Layout(width='95%')),)
+        ipywidgets.interact(self.plot_slice,
+            z=ipywidgets.IntSlider(
+                min=0, 
+                max=maxZ, 
+                step=1, 
+                continuous_update=False,
+                description='Slice index:',
+                layout=ipywidgets.Layout(width='95%')
+            ),
+        )
 
     def plot_slice(self, z):
 
@@ -90,5 +94,4 @@ class ImageSliceViewer3D:
                 vmax=self.cmax
             )
 
-        #self.fig.canvas.draw()
         plt.show()
