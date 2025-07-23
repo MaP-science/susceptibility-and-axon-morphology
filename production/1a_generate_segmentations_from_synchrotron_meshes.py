@@ -1,18 +1,14 @@
-import os
-import sys
-
 verbose = False
 
-# sys.argv[1] = 'idx_gpu'
-# sys.argv[2] = 'name_substrate_type'
-# sys.argv[3] = 'order'
+#### EXPECTED COMMAND LINE ARGUMENTS ###########################################
 
-try:
-    order = sys.argv[3]
-except:
-    order = 1
+# sys.argv[1] = 'idx_gpu'
+# sys.argv[2] = 'name_substrate_type' # G1-z_aligned, G2-z_aligned, ...
 
 #### ENVIRONMENT ###############################################################
+
+import os
+import sys
 
 # Make GPU visible. Must be done before torch is imported.
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
@@ -21,24 +17,11 @@ os.environ["CUDA_VISIBLE_DEVICES"] = sys.argv[1] #index of gpu of interest #prov
 # import
 import numpy as np
 import torch
-import pytorch3d
-import pytorch3d.io
-import math
-import matplotlib.pyplot as plt
-import trimesh
 from tqdm.auto import tqdm
 
-sys.path.append('../../')
-import plotting.src.utils.meshes as pm
-import MCDC_substrate_making.src.plotting as plotting
-import mesh_utils.src.close_roundish_holes as crh
-import mesh_utils.src.mesh_io as mesh_io
-import MCDC_substrate_making.src.building_blocks as bb
-import MCDC_substrate_making.src.hexagonal_helixes as hh
-from plotting.src.utils.slice_viewing import ImageSliceViewer3D
-import mesh_utils.src.mesh_to_voxels as m2v
-from MCDC_analysis.src.PathPolice_validate import PathPolice_validate as PathPolice
-import NumB.src.compute_Bfields_from_paths_segmentations as compute_Bfields
+sys.path.append('../src')
+import mesh_io
+import mesh_to_voxels as m2v
 
 # Check available devices. Choose GPU if one is available. Else choose cpu.
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -46,12 +29,12 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print(f'number of devices: {torch.cuda.device_count()}')
 print(f'device: {device}')
 
-# allocate GPU
+# allocate GPU (claim GPU)
 dummy = torch.Tensor([0.0]).to(device)
 
 #### PATHS #####################################################################
 
-path_home = '/dtu-compute/siwin/'
+path_home = '../'
 
 name_project = 'susceptibility_in_silico'
 name_substrate_type = sys.argv[2]
@@ -65,26 +48,20 @@ white_list = ['axon06', 'axon08', 'axon12', 'axon13', 'axon14',
               'axon34', 'axon38', 'axon40', 'axon41', 'axon43', 'axon45',
               'axon46', 'axon47', 'axon48', 'axon49', 'axon50', 'axon51',
               'axon52', 'axon53', 'axon54']
-# black_list = ['axon10', ]
 
 #### segmentation
-# res_desired = 0.0122 # [um]
-#res_desired = 0.0655 #0.0645 #0.0655 #0.1 #0.064 # [um]
-res_desired = 0.0655 #0.0645 #0.0655 #0.1 #0.064 # [um]
+res_desired = 0.0655 # [um]
 
 n_trims = 1 # number of rounds of triming of the myelin
 
 ####
 buffer_x = 5 * res_desired
 buffer_y = 5 * res_desired
-# if ('G1' in name_substrate_type) or ('G3' in name_substrate_type):
-#     buffer_z = 0.0
-# else:
-#     buffer_z = 5 * res_desired
+
 if ('G1' in name_substrate_type):
     buffer_x = 35 * res_desired
     buffer_y = 35 * res_desired
-    buffer_z = -2280 * res_desired
+    buffer_z = -2280 * res_desired # no longitudinal variation => no need to include full length
 elif ('G3' in name_substrate_type):
     buffer_x = 35 * res_desired
     buffer_y = 35 * res_desired
@@ -92,14 +69,6 @@ elif ('G3' in name_substrate_type):
 else:
     buffer_z = 5 * res_desired
 ####
-# ####
-# buffer_x = 0.0
-# buffer_y = 0.0
-# if ('G1' in name_substrate_type) or ('G3' in name_substrate_type):
-#     buffer_z = 0.0
-# else:
-#     buffer_z = 0.0
-# ####
 
 thres_n_voxels = 65000000
 
@@ -107,10 +76,8 @@ thres_n_voxels = 65000000
 
 keys_all = [f'res_desired={res_desired}'] # all these keys must be in str
 
-path_data = os.path.join(path_home, 'projects/susceptibility_in_silico/substrates/')
+path_data = os.path.join(path_home, 'data/in_silico/substrates/')
 path_meshes = os.path.join(path_data, name_substrate_type, 'meshes')
-path_Bfields = os.path.join(path_data, name_substrate_type, 'Bfields')
-# path_segmentations = os.path.join(path_data, name_substrate_type, 'segmentations')
 path_segmentations = os.path.join(path_data, name_substrate_type, 'segmentations-res_desired=%f.4' %(res_desired))
 
 paths_meshes_outer = np.sort([os.path.join(path_meshes, n) for n in os.listdir(path_meshes) if ('outer.ply' in n) and any([tag in n for tag in white_list])])
@@ -118,7 +85,7 @@ paths_meshes_inner = np.sort([os.path.join(path_meshes, n) for n in os.listdir(p
 
 #### GENERATE ALL ##############################################################
 
-for path_mesh_inner, path_mesh_outer in zip(tqdm(paths_meshes_inner[::order]), paths_meshes_outer[::order]):
+for path_mesh_inner, path_mesh_outer in zip(tqdm(paths_meshes_inner), paths_meshes_outer):
 
     print('path_mesh_inner: ', path_mesh_inner)
 
