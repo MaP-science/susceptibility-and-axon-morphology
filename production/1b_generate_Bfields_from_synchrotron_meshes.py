@@ -55,8 +55,7 @@ white_list = ['axon06', 'axon08', 'axon12', 'axon13', 'axon14',
 # black_list = ['axon10', ]
 
 #### segmentation
-# res_desired = 0.0122 # [um]
-res_desired = 0.0655 #0.0645 #0.0655 #0.1 #0.064 # [um]
+res_desired = 0.0655 # [um]
 
 #### Bfield SPECS ##############################################################
 
@@ -90,9 +89,9 @@ config_Bfield.progression_tracking = {'metric_names' : ['dT', 'summed_abs_change
                                       'tracking_frequency' : 100,}
 
 #### iterations
-config_Bfield.max_iter_rough = int(sys.argv[3]) #15000#5000#500#500#50000
+config_Bfield.max_iter_rough = int(sys.argv[3])
 config_Bfield.dT_rough = 0.65
-config_Bfield.max_iter_fine = int(sys.argv[4]) #5000#15000#1500#150000
+config_Bfield.max_iter_fine = int(sys.argv[4])
 config_Bfield.dT_fine = 0.16
 
 tag_quick = f'-max_iter_rough={config_Bfield.max_iter_rough}-max_iter_fine={config_Bfield.max_iter_fine}'
