@@ -2,6 +2,8 @@ __pycache__/
 
 .venv
 
+figures/*
+
 #### silly work-around to keep some .signals files but exclude most
 # see: https://stackoverflow.com/a/25475163
 data/*
