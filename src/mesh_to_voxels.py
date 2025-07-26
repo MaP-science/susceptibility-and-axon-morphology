@@ -6,6 +6,11 @@ from tqdm.auto import tqdm
 import numpy as np
 
 
+##########################################################################################
+##### DEMONSTRATED IN MORE DETAIL AT: https://github.com/sibowi/mesh_utils ###############
+##########################################################################################
+
+
 
 def check_ray_triangle_intersection(ray_origins, ray_direction, triangle, epsilon=1e-6):
     """
@@ -56,8 +61,7 @@ def check_ray_triangle_intersection(ray_origins, ray_direction, triangle, epsilo
     invdet = 1. / -torch.einsum('ji, i -> j', ray_direction, N) # inverse determinant
 
     A0 = ray_origins - triangle[0]
-    # print('A0.shape: ', A0.shape)
-    # print('ray_direction.shape: ', ray_direction.shape)
+    
     DA0 = torch.cross(A0, ray_direction)
 
     u = torch.einsum('ji, i -> j', DA0, E2) * invdet
@@ -98,17 +102,9 @@ def generate_voxel_grid(bbox, res):
 
     delta = 0.000001 # for numerical stuff
 
-    # xs = torch.arange(xmin, xmax+delta, res_actual_x)
-    # ys = torch.arange(ymin, ymax+delta, res_actual_y)
-    # zs = torch.arange(zmin, zmax+delta, res_actual_z)
     xs = torch.arange(xmin, xmax-res_actual_x, res_actual_x)
     ys = torch.arange(ymin, ymax-res_actual_y, res_actual_y)
     zs = torch.arange(zmin, zmax-res_actual_z, res_actual_z)
-
-    # print('xmin, xmax, ymin, ymax, zmin, zmax: ', xmin, xmax, ymin, ymax, zmin, zmax)
-    # print('xs: ', torch.min(xs), torch.max(xs))
-    # print('ys: ', torch.min(ys), torch.max(ys))
-    # print('zs: ', torch.min(zs), torch.max(zs))
 
     grid_x, grid_y, grid_z = torch.meshgrid(xs, ys, zs)
 
@@ -130,10 +126,6 @@ def get_mesh_bbox(vertices):
 def get_ray_origins(vertices, res=0.1, bbox=None):
 
     device = vertices.device
-
-    # # get bbox of mesh
-    # if bbox == None:
-    #     bbox = get_mesh_bbox(vertices)
 
     # generate grid
     grid_x, grid_y, grid_z = generate_voxel_grid(bbox, res)
@@ -166,7 +158,6 @@ def get_ray_origins_masked(vertices, res=0.1, bbox=None, mask_prior=None):
     if mask_prior == None:
         mask_prior = torch.ones(shape_grid).type(torch.bool)
 
-    #mask_prior = torch.zeros(grid_x.shape).type(torch.bool)
     grid_x, grid_y, grid_z = grid_x[mask_prior], grid_y[mask_prior], grid_z[mask_prior]
 
     # flatten for optimized computation
@@ -197,10 +188,6 @@ def get_ray_directions(ray_directions_singles, n_ray_origins, device):
     ray_directions_singles : list
     """
 
-    #ray_direction = torch.Tensor(ray_directions_singles).to(device)
-
-    #print('ray_direction.shape', ray_direction.shape)
-
     ray_direction = ray_directions_singles.repeat_interleave(n_ray_origins, dim=0)
 
     return ray_direction
@@ -211,7 +198,7 @@ def get_faces_associated_with_given_ray_origins(faces, vertices, ray_origins, bu
 
     """
 
-    #### no need to check faces that are not within the range of of the ray_origins
+    #### no need to check faces that are not within the range of the ray_origins
     # doing batches along z
     # For a triangle to be associated with the slab of interest, one of the two conditions must be
     # fulfilled.
@@ -224,10 +211,6 @@ def get_faces_associated_with_given_ray_origins(faces, vertices, ray_origins, bu
 
     # condition 1, if any vertex is contained by the slab
     mask_contained = (vertices[:, 2] >= (ray_origins_zmin - abs(buffer_z_lower) - epsilon)) * (vertices[:, 2] <= (ray_origins_zmax + buffer_z_higher + epsilon))
-    # mask_z = mask_contained
-
-    # mask_vertices_inside_range_oi = mask_contained
-    # print('mask_contained: ', mask_contained.shape)
 
     mask_contained = torch.sum(mask_contained[faces], dim=1) > 0
 
@@ -254,10 +237,6 @@ def get_segmentation_from_mask_voxel_corners_inside(mask_inside):
     considered as being inside the mesh.
 
     """
-
-    # segmentation = mask_inside[1:, :-1, :-1] * mask_inside[:-1, 1:, :-1] * mask_inside[:-1, :-1, 1:] * \
-    #                mask_inside[1:, 1:, :-1] * mask_inside[1:, :-1, 1:] * mask_inside[:-1, 1:, 1:] * \
-    #                mask_inside[1:, 1:, 1:] * mask_inside[:-1, :-1, :-1]
 
     segmentation = mask_inside * \
                    torch.roll(mask_inside, shifts=(1), dims=(0)) * \
@@ -312,10 +291,6 @@ def get_angles_between_ray_directions_and_z(ray_directions):
 
     def get_angles(a, b):
 
-        # a = torch.Tensor(a)
-        # b = torch.Tensor(b)
-
-        #inner_product = torch.einsum('ij, ik -> i', a, b) #(a * b)#.sum(dim=1)
         inner_product = torch.einsum('ij, kj -> i', a, b) #(a * b)#.sum(dim=1)
         a_norm = a.pow(2).sum(dim=1).pow(0.5)
         b_norm = b.pow(2).sum(dim=1).pow(0.5)
@@ -324,28 +299,12 @@ def get_angles_between_ray_directions_and_z(ray_directions):
 
         angles = angles * 180. / np.pi
 
-        #angles[angles > 90] = 180 - angles[angles > 90]
-
         return angles
-
-    # normed = torch.nn.functional.normalize(ray_directions, dim=1)
-    # #
-    # print('normed: ', normed)
-    #
-    # theta_zs = torch.asin(normed[:, -1])
-    #
-    # print('theta_zs: ', theta_zs)
-    #
-    # theta_zs[theta_zs < 0] = np.pi + theta_zs[theta_zs < 0]
 
     vector_z = torch.Tensor([0., 0., 1.]).unsqueeze(0).to(ray_directions.get_device())
 
-    # print('vector_z: ', vector_z, vector_z.shape)
-    # print('ray_directions: ', ray_directions, ray_directions.shape)
-
     theta_zs = get_angles(ray_directions.type(torch.float32), vector_z.type(torch.float32))
     theta_zs = torch.deg2rad(theta_zs)
-    # print('theta_zs: ', theta_zs)
 
     return theta_zs
 
@@ -376,20 +335,11 @@ def get_buffer_lengths_z(theta_zs, shape_grid, res):
 
     """
 
-    # buffer_lengths_z = torch.sin(theta_zs) * max(shape_grid[:2]) * res
-    # buffer_lengths_z = torch.sin(theta_zs) * (math.sqrt(shape_grid[0]**2 + shape_grid[1]**2)) * res
-
     theta_xys = math.pi/2. - theta_zs
-
-    # print('theta_xys: ', theta_xys)
 
     diagonal = math.sqrt(shape_grid[0]**2 + shape_grid[1]**2) * res
 
-    # print('diagonal: ', diagonal)
-
     buffer_lengths_z = torch.tan(theta_xys) * diagonal
-
-    # print('buffer_lengths_z: ', buffer_lengths_z)
 
     return buffer_lengths_z
 
@@ -468,8 +418,6 @@ def check_if_voxel_corners_are_inside_mesh(path_mesh, res, device, inspection_mo
     Main function. Combines
     """
 
-    #torch.set_default_dtype(torch.float64) ####
-
     if len(res) == 3:
         res_actual_x, res_actual_y, res_actual_z = res
     else:
@@ -507,10 +455,8 @@ def check_if_voxel_corners_are_inside_mesh(path_mesh, res, device, inspection_mo
     # get the maximum distance between vertices in each face
     z_lengths_faces = torch.max(vertices[faces][:, :, -1], dim=1)[0] - torch.min(vertices[faces][:, :, -1], dim=1)[0]
     z_length_most_occuring = torch.mode(z_lengths_faces)[0]
-    # print('z_length_most_occuring: ', z_length_most_occuring)
 
-    n_z_slices_per_batch = max(int((z_length_most_occuring // res_actual_z)), 1) # must be >=1 #int(z_length_most_occuring // res)
-    # print('n_z_slices_per_batch: ', n_z_slices_per_batch)
+    n_z_slices_per_batch = max(int((z_length_most_occuring // res_actual_z)), 1) # must be >=1
 
     # number of points per batch
     n = shape_grid[0] * shape_grid[1] * n_z_slices_per_batch
@@ -519,20 +465,12 @@ def check_if_voxel_corners_are_inside_mesh(path_mesh, res, device, inspection_mo
     total = int(np.ceil(len(mask_ray_origins_all_z_sorted) / n))
 
     #### initialize
-    # ray_directions_singles = torch.Tensor([[10., 9., 0.], [10., 9., 1], [10., 9., -1]]).to(device).type(torch.float64) #### TODO: Parameter?
-    #ray_directions_singles = torch.Tensor([[10., 9., 0.], [-10., 9., 1], [10., -9., -1]]).to(device).type(torch.float64) #### TODO: Parameter?
-    ray_directions_singles = torch.Tensor([[10., 9., 0.], [-10., 9., res_actual_z/2], [10., -9., -res_actual_z/2]]).to(device).type(torch.float64) #### TODO: Parameter?
-    # ray_directions_singles = torch.Tensor([[1., 1., 0.], [0., 1., 1.], [0., 1., -1.]]).to(device).type(torch.float64) #### TODO: Parameter?
-    # print('res[2]/2: ', res[2]/2)
-    # ray_directions_singles = torch.Tensor([[10., 9., 1.], [-10., 9., 2.], [10., -9., -1.], [-10., -9., 1.], [3., -7., -1.]]).to(device).type(torch.float64) #### TODO: Parameter?
-    ####intersections = torch.zeros(ray_origins_all.shape).to(device)
+    ray_directions_singles = torch.Tensor([[10., 9., 0.], [-10., 9., res_actual_z/2], [10., -9., -res_actual_z/2]]).to(device).type(torch.float64)
     intersections = torch.zeros((ray_origins_all.shape[0], ray_directions_singles.shape[0])).to(device)
 
     #### get slab-buffer specs
     theta_zs = get_angles_between_ray_directions_and_z(ray_directions_singles)
-    # print('theta_zs: ', theta_zs)
-    buffer_lengths_z = get_buffer_lengths_z(theta_zs, shape_grid, res_actual_z) #* 1e-3 #### * 1e-3, really??
-    # print('buffer_lengths_z: ', buffer_lengths_z)
+    buffer_lengths_z = get_buffer_lengths_z(theta_zs, shape_grid, res_actual_z)
 
     #### voting policy
     # TODO: OPTIMIZE!
@@ -548,12 +486,10 @@ def check_if_voxel_corners_are_inside_mesh(path_mesh, res, device, inspection_mo
         # get faces of interest
         faces_oi = get_faces_associated_with_given_ray_origins(faces, vertices,
                                                                ray_origins,
-                                                               buffer_z_lower=min(buffer_lengths_z), ####
-                                                               buffer_z_higher=max(buffer_lengths_z), ####
-                                                               epsilon=0.0, ####
+                                                               buffer_z_lower=min(buffer_lengths_z),
+                                                               buffer_z_higher=max(buffer_lengths_z),
+                                                               epsilon=0.0,
                                                               )
-
-        # print(f'\t Checking {len(faces_oi)}/{len(faces)} faces.')
 
         if len(faces_oi) == 0:
             continue
@@ -569,7 +505,6 @@ def check_if_voxel_corners_are_inside_mesh(path_mesh, res, device, inspection_mo
 
         # how many ray_origins are ignored
         if verbose: print(f'\t Checking {len(faces_oi)}/{len(faces)} faces. Ignoring {np.round(1 - torch.sum(mask_mesh_bbox).cpu().numpy()/len(mask_mesh_bbox), 2)} ray_origins in this slab.')
-        # print(f'\t Ignoring {np.round(1 - torch.sum(mask_mesh_bbox).cpu().numpy()/len(mask_mesh_bbox), 2)} ray_origins in this slab.')
 
         ray_origins = ray_origins[mask_mesh_bbox, :]
 
@@ -595,7 +530,6 @@ def check_if_voxel_corners_are_inside_mesh(path_mesh, res, device, inspection_mo
 
             intersections[idxs_oi[mask_mesh_bbox], :] += votes
 
-    # del votes
     del votes, ray_origins, ray_directions
     torch.cuda.empty_cache()
 
@@ -628,27 +562,17 @@ def check_if_voxel_corners_are_inside_mesh_with_mask(path_mesh, res, device, mas
     Main function. Combines
     """
 
-    #torch.set_default_dtype(torch.float64) ####
-
     #### load mesh
     vertices, faces = torch3d.io.load_ply(path_mesh)
     vertices = vertices.to(device).type(torch.float64)
     faces = faces.to(device)
 
     #### get tensor containing a point for each corner of each voxel
-    #mask_prior = torch.zeros((34, 34, 3002)).type(torch.bool)
-    #mask_prior[:15, :15, :] = True
     ray_origins_all, shape_grid = get_ray_origins_masked(vertices, res=res, bbox=bbox, mask_prior=mask_prior)
-    ray_origins_all = ray_origins_all.type(torch.float64) ####
+    ray_origins_all = ray_origins_all.type(torch.float64)
 
     if mask_prior == None:
         mask_prior = torch.ones(shape_grid).type(torch.bool)
-
-    # print('here: ', ray_origins_all.shape)
-    # mask_prior_ray_origins_all = torch.zeros(ray_origins_all.shape).type(torch.bool)
-    # mask_prior_ray_origins_all[:15, :15, :] = True
-
-    # print(f'The points to be segmented are organized in a grid of shape {shape_grid}. That is {shape_grid.numel()} points in total.')
 
     #### sort ray origins with respect their z-position
     mask_ray_origins_all_z_sorted = torch.argsort(ray_origins_all[:, 2])
@@ -659,9 +583,7 @@ def check_if_voxel_corners_are_inside_mesh_with_mask(path_mesh, res, device, mas
     z_lengths_faces = torch.max(vertices[faces][:, :, -1], dim=1)[0] - torch.min(vertices[faces][:, :, -1], dim=1)[0]
     z_length_most_occuring = torch.mode(z_lengths_faces)[0]
 
-    n_z_slices_per_batch = max(int((z_length_most_occuring // res) / 1), 1) # must be >=1 #int(z_length_most_occuring // res)
-    ####n_z_slices_per_batch = 10
-    # print('n_z_slices_per_batch: ', n_z_slices_per_batch)
+    n_z_slices_per_batch = max(int((z_length_most_occuring // res) / 1), 1) # must be >=1
 
     # number of points per batch
     if mask_prior == None:
@@ -669,24 +591,16 @@ def check_if_voxel_corners_are_inside_mesh_with_mask(path_mesh, res, device, mas
     else:
         n = torch.sum(mask_prior[:, :, 0]).to('cpu')
 
-    # print('n: ', n)
-
     #### for progress bar (tqdm)
     total = int(np.ceil(len(mask_ray_origins_all_z_sorted) / n))
 
     #### initialize
-    # ray_directions_singles = torch.Tensor([[10., 9., 0.], [10., 9., 1], [10., 9., -1]]).to(device).type(torch.float64) #### TODO: Parameter?
-    # ray_directions_singles = torch.Tensor([[10., 9., 0.], [-10., 9., 1], [10., -9., -1]]).to(device).type(torch.float64) #### TODO: Parameter?
-    ray_directions_singles = torch.Tensor([[10., 9., 1.], [-10., 9., 2.], [10., -9., -1.], [-10., -9., 1.], [3., -7., -1.]]).to(device).type(torch.float64) #### TODO: Parameter?
-    # ray_directions_singles = torch.Tensor([[10000., 9000., 1.], [-10000., 9000., 2.], [10000., -9000., -1.], [-10000., -9000., 1.], [3000., -7000., -1.]]).to(device).type(torch.float64) #### TODO: Parameter?
-    ####intersections = torch.zeros(ray_origins_all.shape).to(device)
+    ray_directions_singles = torch.Tensor([[10., 9., 1.], [-10., 9., 2.], [10., -9., -1.], [-10., -9., 1.], [3., -7., -1.]]).to(device).type(torch.float64)
     intersections = torch.zeros((ray_origins_all.shape[0], ray_directions_singles.shape[0])).to(device)
 
     #### get slab-buffer specs
     theta_zs = get_angles_between_ray_directions_and_z(ray_directions_singles)
-    # print('theta_zs: ', theta_zs)
-    buffer_lengths_z = get_buffer_lengths_z(theta_zs, shape_grid, res) * 1e-3 ####
-    # print('buffer_lengths_z: ', min(buffer_lengths_z), max(buffer_lengths_z))
+    buffer_lengths_z = get_buffer_lengths_z(theta_zs, shape_grid, res) * 1e-3
 
     #### voting policy
     # TODO: OPTIMIZE!
@@ -702,8 +616,8 @@ def check_if_voxel_corners_are_inside_mesh_with_mask(path_mesh, res, device, mas
         # get faces of interest
         faces_oi = get_faces_associated_with_given_ray_origins(faces, vertices,
                                                                ray_origins,
-                                                               buffer_z_lower=min(buffer_lengths_z), ####
-                                                               buffer_z_higher=max(buffer_lengths_z), ####
+                                                               buffer_z_lower=min(buffer_lengths_z),
+                                                               buffer_z_higher=max(buffer_lengths_z),
                                                                epsilon=0.0, ####
                                                               )
 
@@ -774,9 +688,6 @@ def check_if_voxel_corners_are_inside_mesh_with_mask(path_mesh, res, device, mas
         #reshape
         intersections = intersections_blank.reshape(shape_grid + (len(ray_directions_singles),))
         intersections = [intersections[:, :, :, i] for i in range(intersections.shape[-1])]
-        # #reshape
-        # intersections = intersections.reshape(shape_grid + (len(ray_directions_singles),))
-        # intersections = [intersections[:, :, :, i] for i in range(intersections.shape[-1])]
 
         return mask_voxel_corners_inside, intersections
     else:

@@ -25,7 +25,7 @@ class ProgressionTracking():
         self.metric_functions = {metric_name : self._get_function_for_metric(metric_name) for metric_name in metric_names}
         self.metrics = {metric_name : [] for metric_name in metric_names}
         self.metrics['tracking_frequency'] = tracking_frequency
-        self.tracking_frequency = tracking_frequency #TODO: Make dynamic (eg. depending on chnage in summed_abs_change)
+        self.tracking_frequency = tracking_frequency
 
     def update_tracked_metrics(self):
         """

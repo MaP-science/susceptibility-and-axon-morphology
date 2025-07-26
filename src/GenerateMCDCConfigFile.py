@@ -51,7 +51,6 @@ class GenerateMCDCConfigFile():
 
         #### create file
         if not os.path.exists(self.path_file):
-            # os.makedirs(os.path.dirname(self.path_file), exist_ok=False)
             with open(self.path_file, 'w'):
                 pass
         elif os.path.exists(self.path_file) and allow_overwrite == True:
@@ -108,16 +107,14 @@ def write_config_file(path_mesh, path_pattern_out, density_particles, T,
 
     name_substrate_master = path_mesh.split('/')[-3]
 
-    # path_pattern_out_oi = path_pattern_out + name_substrate_master + '/'
     path_pattern_out_oi = os.path.join(path_pattern_out, name_substrate_master)
-    # if not os.path.exists(path_pattern_out_oi):
-    #     os.system(f'mkdir -p {path_pattern_out_oi}')
+
     if not os.path.exists(path_pattern_out_oi):
         os.makedirs(path_pattern_out_oi)
 
     tag_phantom = path_mesh.split('/')[-1].replace('.ply', '')
 
-    path_config_file = os.path.join(path_pattern_out_oi, tag_phantom)+'.conf'#f'{path_pattern_out_oi}{ply_tag}.conf'
+    path_config_file = os.path.join(path_pattern_out_oi, tag_phantom)+'.conf'
 
     if os.path.exists(path_config_file):
         print(f'{path_config_file} already exists and will therefore be skipped...')
@@ -153,7 +150,6 @@ def write_config_file(path_mesh, path_pattern_out, density_particles, T,
         compartment = 'intra'
         N_particles = N_particles
     else:
-        #icvf = float(path_mesh.split('icvf=')[-1].split('-')[0])
         ecvf = float(path_mesh.split('ecvf=')[-1].split('-')[0])
         icvf = 1 - ecvf
         g_ratio = float(path_mesh.split('g_ratio=')[-1].split('-')[0])
@@ -161,15 +157,11 @@ def write_config_file(path_mesh, path_pattern_out, density_particles, T,
 
         if '-outer.ply' in path_mesh:
             compartment = 'extra'
-            # print('extra volume', voxel_volume * (1.0 - icvf))
             N_particles = int(np.ceil(voxel_volume * (1.0 - icvf) * density_particles))
         elif '-inner.ply' in path_mesh:
             compartment = 'intra'
             icvf_corrected = math.pi * (r_tube_outer * g_ratio)**2 * 2 * voxel_length_z / voxel_volume # because icvf in path is actually also myelin compartment. FIX THAT!
-            # mvf = (math.pi * (r_tube_outer)**2 - math.pi * (r_tube_outer * g_ratio)**2) * 2 * voxel_length_z # for checking
-            # print('intra volume', voxel_volume * icvf_corrected)
             N_particles = int(np.ceil(voxel_volume * icvf_corrected * density_particles))
-            # N_particles = int(np.ceil(voxel_volume / (scale**3) * icvf_corrected * density_particles))
 
     #### parameters
 
@@ -177,9 +169,8 @@ def write_config_file(path_mesh, path_pattern_out, density_particles, T,
     parameters_simple = {'N' : N_particles,
                          'T' : T,
                          'duration' : duration, #Delta+delta
-                         'diffusivity' : diffusivity, #3e-9, #2e-5,
+                         'diffusivity' : diffusivity,
                          'deportation' : 1,
-                         ####'deportation' : 0,
                          'write_txt' : 0,
                          'write_bin' : 1,
                          'write_traj_file' : 1,
@@ -201,7 +192,7 @@ def write_config_file(path_mesh, path_pattern_out, density_particles, T,
 
     # obstacle
     obstacle = {'ply' : path_mesh,
-                'ply_scale' : scale,}#1.0,}
+                'ply_scale' : scale,}
 
     parameters_complex = {'obstacle' : obstacle,
                           'voxels' : {'' : voxels,},

@@ -130,9 +130,6 @@ class MCDCExperimentWithSusceptibility():
         """
         inspired by: https://github.com/jonhrafe/MCDC_Simulator_public/blob/master/src/pgsesequence.cpp
 
-        TODO: Add contribution for when start and stop of a block is not aligned
-        with the time-discretisation.
-
         This:
             torch.einsum('nwc,c->nw', trajectories[:, firstBlockStart:firstBlockEnd+1, :]* 1e-3, b_vector)
         Corresponds to:
@@ -140,7 +137,7 @@ class MCDCExperimentWithSusceptibility():
                 pos_current_all = trajectories[:, i, :] * 1e-3
 
         """
-        ####pads = (self.TEs - self.Deltas - self.deltas) / 2.0
+
         pads = (self.TE_scheme - self.Deltas - self.deltas) / 2.0
 
         firstBlockStarts = (pads / self.dT).type(torch.int)
@@ -186,7 +183,6 @@ class MCDCExperimentWithSusceptibility():
             print('segmentation.shape', segmentation.shape)
             if verbose: print('path_segmentation', path_segmentation)
             if verbose: print('segmentation', torch.unique(segmentation))
-            # segmentation = torch.transpose(segmentation, 0, 1)
 
             if verbose: print('segmentation.shape: ', segmentation.shape)
 

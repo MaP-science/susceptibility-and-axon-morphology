@@ -47,7 +47,6 @@ class BfieldSolver3D(ProgressionTracking):
 
         #### Substrate
         self.Chi = Chi.to(self.device)
-        # self.Chi = torch.transpose(self.Chi, 0, 1)
 
         #### Initial Phi
         self.Phi, self.Phi_x_comp, self.Phi_y_comp, self.Phi_z_comp = self._initialize_phi()
@@ -68,11 +67,6 @@ class BfieldSolver3D(ProgressionTracking):
         if self.progression_tracking != None:
 
             super().__init__(**self.progression_tracking)
-            # Metrics to track
-            # TODO: self.Phi and self.Phi_next SHOULD have an additional pointer
-            # assigned. The pointer could have a more general name, to make the
-            # ProgressionTracking class more general.
-
 
     def _initialize_phi(self):
         """

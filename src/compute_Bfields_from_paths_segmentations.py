@@ -28,7 +28,7 @@ def compute(paths_segmentations, device, pp, config, boundary_mode='circular', q
             segmentation = segmentation.repeat(1, 1, 3)
 
         #### generate substrate
-        x_res, y_res, z_res = np.shape(segmentation) # should be handled in BfieldSolver3D
+        x_res, y_res, z_res = np.shape(segmentation) 
 
         print('x_res, y_res, z_res: ', x_res, y_res, z_res)
 

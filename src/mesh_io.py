@@ -38,28 +38,6 @@ def load_ply(path_mesh):
 
     return torch.Tensor(verts), torch.Tensor(faces).to(torch.long)
 
-# def load_ply(path_mesh):
-#
-#     # get number of verts and faces
-#     with open(path_mesh, 'r') as file:
-#
-#         lines = file.readlines()
-#
-#         n_verts = int(lines[3].split(' ')[-1])
-#         n_faces = int(lines[7].split(' ')[-1])
-#
-#     # load verts
-#     verts = np.loadtxt(path_mesh, skiprows=10, max_rows=n_verts)
-#
-#     # load faces
-#     faces = np.loadtxt(path_mesh, skiprows=10+n_verts, max_rows=n_faces, usecols=(1, 2, 3)).astype(int)
-#
-#     return torch.Tensor(verts), torch.Tensor(faces).to(torch.long)
-
-
-
-#### TODO: Redo with pytorch3d??
-
 def load_mesh(path_mesh):
     """
     Because pymesh.read() couldn't read the G6-meshes from Mariam.
@@ -157,10 +135,10 @@ def get_face_normals(vertices, faces):
 
 def close_holes(mesh):
     """
-    Not perfect.
+    Inspired by Mariam Andersson (mariama@drcmr.dk).
 
     Works for round and not too weird holes that points away from the center of
-    mass of the original mesh vertices.
+    mass of the original mesh vertices. Not perfect.
 
     Reasoning:
         - In a closed mesh, each edge will occur twice - in two different faces.
