@@ -2,6 +2,30 @@ __pycache__/
 
 .venv
 
+#### silly work-around to keep some .signals files but exclude most
+# see: https://stackoverflow.com/a/25475163
 data/*
+!data/in_silico
+
+data/in_silico/*
+!data/in_silico/MCDC/
+
+data/in_silico/MCDC/*
+!data/in_silico/MCDC/G1-z_aligned/
+!data/in_silico/MCDC/G3-z_aligned/
+!data/in_silico/MCDC/G4-z_aligned/
+!data/in_silico/MCDC/G5-z_aligned/
+!data/in_silico/MCDC/G6-z_aligned/
+
+data/in_silico/MCDC/G1-z_aligned/*
+data/in_silico/MCDC/G3-z_aligned/*
+data/in_silico/MCDC/G4-z_aligned/*
+data/in_silico/MCDC/G5-z_aligned/*
+data/in_silico/MCDC/G6-z_aligned/*
+!data/in_silico/MCDC/G1-z_aligned/*axon06*
+!data/in_silico/MCDC/G3-z_aligned/*axon06*
+!data/in_silico/MCDC/G4-z_aligned/*axon06*
+!data/in_silico/MCDC/G5-z_aligned/*axon06*
+!data/in_silico/MCDC/G6-z_aligned/*axon06*
 
 *checkpoint.ipynb
