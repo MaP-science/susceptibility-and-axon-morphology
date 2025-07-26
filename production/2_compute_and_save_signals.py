@@ -1,6 +1,8 @@
 import os
 import sys
 
+#### COMMAND LINE ARGUMENTS ####################################################
+
 # sys.argv[1] = 'idx_gpu'
 # sys.argv[2] = 'name_substrate_type'
 # sys.argv[3] = 'check_rogue'
@@ -8,14 +10,14 @@ import sys
 # sys.argv[5] = 'tag_scheme'
 # sys.argv[6] = 'B_x_angle'
 
-# python 3_compute_and_save_signals.py 7 synchrotron-G6-z_aligned True -max_iter_rough=50000-max_iter_fine=15000 -Delta=20.2-delta=7.2 0.0
-# python 3_compute_and_save_signals.py 7 hexagonal_helix_undulated-n_trims=1-MWF-r_tube_outer=1.50 False -max_iter_rough=50000-max_iter_fine=15000 -Delta=20.2-delta=7.2 0.0
-# python 3_compute_and_save_signals.py 0 TEST=0.85-r_tube_outer=1.50 True -max_iter_rough=50000-max_iter_fine=15000 -Delta=20.2-delta=7.2 0.0
-
 try:
     B_x_angle = sys.argv[6]
 except:
     B_x_angle = '0.00'
+
+#### EXAMPLES ##################################################################
+
+# python 3_compute_and_save_signals.py 7 synchrotron-G6-z_aligned True -max_iter_rough=50000-max_iter_fine=15000 -Delta=20.2-delta=7.2 0.0
 
 #### ENVIRONMENT ###############################################################
 
@@ -30,8 +32,7 @@ from tqdm.auto import tqdm
 import pickle
 
 sys.path.append('../../')
-# from MCDC_analysis.src.MCDCExperimentWithSusceptibility import MCDCExperimentWithSusceptibility
-from MCDC_analysis.src.MCDCExperimentWithSusceptibility_synchrotron import MCDCExperimentWithSusceptibility
+from MCDCExperimentWithSusceptibility_synchrotron import MCDCExperimentWithSusceptibility
 
 # Check available devices. Choose GPU if one is available. Else choose cpu.
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -156,7 +157,6 @@ for path_config in tqdm(paths_configs):
                 label_oi=label_oi)
 
             print('mask_rogue_particles')
-            print(mask_rogue_particles.shape)
             print(torch.sum(mask_rogue_particles, dim=1))
             print('trajectories', trajectories.shape)
             _n_particles_in_trajectories = trajectories.shape[0]

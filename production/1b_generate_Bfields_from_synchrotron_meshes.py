@@ -1,14 +1,12 @@
 
 verbose = False
 
-#### EXPECTED COMMAND LINE ARGUMENTS ###########################################
+#### COMMAND LINE ARGUMENTS ####################################################
 
 # sys.argv[1] = 'idx_gpu'
 # sys.argv[2] = 'name_subsrate_type'
-# sys.argv[3] = 'max_iter_rough' #50000 #15000
-# sys.argv[4] = 'max_iter_fine' #150000 #5000
-# sys.argv[5] = 'order'
-# sys.argv[6] = 'off_set'
+# sys.argv[3] = 'max_iter_rough'
+# sys.argv[4] = 'max_iter_fine'
 
 #### ENVIRONMENT ###############################################################
 

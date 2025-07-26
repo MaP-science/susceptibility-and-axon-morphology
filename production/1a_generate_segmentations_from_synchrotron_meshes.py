@@ -1,6 +1,6 @@
 verbose = False
 
-#### EXPECTED COMMAND LINE ARGUMENTS ###########################################
+#### COMMAND LINE ARGUMENTS ####################################################
 
 # sys.argv[1] = 'idx_gpu'
 # sys.argv[2] = 'name_substrate_type' # G1-z_aligned, G2-z_aligned, ...

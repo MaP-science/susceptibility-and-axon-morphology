@@ -1,3 +1,9 @@
+#### REQUIREMENTS ##############################################################
+
+# MC-DC_Simulator: https://github.com/jonhrafe/MCDC_Simulator_public
+
+#### COMMAND LINE ARGUMENTS ####################################################
+
 # sys.argv[1] = 'name_substrate_type'
 
 #### ENVIRONMENT ###############################################################
@@ -6,26 +12,20 @@ import os
 import sys
 import numpy as np
 import torch
-import pytorch3d
-import pytorch3d.io
 from tqdm.auto import tqdm
 
 torch.set_printoptions(16)
 
-sys.path.append('../../')
-import MCDC_analysis.src.GenerateMCDCConfigFile as mcdc_config
-import MCDC_analysis.src.initial_positions_generation as ipg
-from MCDC_substrate_making.src.CylinderListEnsembleGenerator import CylinderListEnsembleGenerator
-import MCDC_substrate_making.src.cylinder_list_segmentation_generation as clsg
-from ISMRM2020.src.PathPolice_ISMRM2020 import PathPolice_ISMRM2020 as PathPolice
-import NumB.src.compute_Bfields_from_paths_segmentations as compute_Bfields
-import mesh_utils.src.mesh_io as mesh_io
+sys.path.append('../src')
+import GenerateMCDCConfigFile as mcdc_config
+from PathPolice_ISMRM2020 import PathPolice_ISMRM2020 as PathPolice
+import mesh_io as mesh_io
 
 #### SET NAMES AND PATHS #######################################################
 
 keys_unwanted = ['_outer']
 
-path_home = '/dtu-compute/siwin/'
+path_home = '../'
 
 name_project = 'susceptibility_in_silico'
 name_substrate_type = sys.argv[1]
@@ -36,7 +36,7 @@ path_police = PathPolice(path_home, name_project, '', name_substrate_type)
 
 name_experiment = 'microdispersion'
 path_pattern_out = f'{path_police.path_project}/data/MCDC/{name_experiment}/'
-name_scheme = 'n_shells=05-n_directions=3' #'n_shells=09-n_directions=21'
+name_scheme = 'n_shells=05-n_directions=3' # use minimal scheme. there signals of interest are computed with 2_compute_and_save_signals.py
 path_scheme_file = f'{path_police.path_project}/resources/DWI/schemes/{name_scheme}.scheme'
 
 if not os.path.exists(path_pattern_out):
@@ -52,7 +52,6 @@ white_list = ['axon06', 'axon08', 'axon12', 'axon13', 'axon14',
               'axon34', 'axon38', 'axon40', 'axon41', 'axon43', 'axon45',
               'axon46', 'axon47', 'axon48', 'axon49', 'axon50', 'axon51',
               'axon52', 'axon53', 'axon54']
-# black_list = ['axon10', ]
 
 path_data = os.path.join(path_home, 'projects/susceptibility_in_silico/substrates/')
 path_meshes = os.path.join(path_data, name_substrate_type, 'meshes')
@@ -64,14 +63,11 @@ paths_meshes_outer = np.sort([os.path.join(path_meshes, n) for n in os.listdir(p
 paths_meshes_inner = np.sort([os.path.join(path_meshes, n) for n in os.listdir(path_meshes) if ('inner.ply' in n) and any([tag in n for tag in white_list])])
 
 ### voxel specs
-res_desired = 0.0655 #0.0645 #0.0655 #0.1 #0.064 # [um]
+res_desired = 0.0655 # [um]
 
 buffer_x = 5 * res_desired
 buffer_y = 5 * res_desired
-# if ('G1' in name_substrate_type) or ('G3' in name_substrate_type):
-#     buffer_z = 0.0
-# else:
-#     buffer_z = 5 * res_desired
+
 if ('G1' in name_substrate_type):
     buffer_x = 35 * res_desired
     buffer_y = 35 * res_desired
@@ -88,13 +84,13 @@ else:
 
 # number of walkers to include in ini_walker_pos-file
 # number of time steps
-T = 10000#57000 #10000
+T = 10000
 # duration in seconds
 duration = 0.036 #Delta+delta
 # diffusivity
-diffusivity = 0.6e-9#0.6e-9#2e-9 #### 18-04-2021: 2e-9 CORRESPONDS TO IN VIVO. 0.6e-9 CORRESPONDS TO EX VIVO.
+diffusivity = 0.6e-9 #### 18-04-2021: 2e-9 CORRESPONDS TO IN VIVO. 0.6e-9 CORRESPONDS TO EX VIVO.
 # number of processors to use
-num_process = 16#16
+num_process = 16
 
 if ('G1' in name_substrate_type):
     buffer_sampling_area = [0.0, 0.0, 0.00005] # [mm] #0.00005
@@ -102,8 +98,6 @@ if ('G1' in name_substrate_type):
 else:
     buffer_sampling_area = [0.0, 0.0, 0.020] # [mm] #0.00005
     density_particles = 15 # [1/um^3]
-# buffer_sampling_area = [0.0, 0.0, 0.050] # [mm] #0.00005
-print('\n\n\n buffer_sampling_area = [0.0, 0.0, 0.050] \n\n\n')
 
 print('\nThese parameters result in:')
 dT = duration / T
@@ -112,13 +106,13 @@ len_step = np.sqrt(6 * diffusivity * dT)
 print('\t len_step: ', len_step)
 # input('Continue?\n')
 
-#### GET MESH PATHS OI #############################################################
+#### GET MESH PATHS OI ########################################################
 
 for path_mesh_inner, path_mesh_outer in zip(tqdm(paths_meshes_inner), paths_meshes_outer):
 
     print('path_mesh_inner: ', path_mesh_inner)
 
-    #### GENERATE SEGMENTATIONS ################################################
+    #### GENERATE SEGMENTATIONS ###############################################
     #### load meshes
     verts_outer, faces_outer = mesh_io.load_ply(path_mesh_outer)
 
@@ -159,8 +153,6 @@ for path_mesh_inner, path_mesh_outer in zip(tqdm(paths_meshes_inner), paths_mesh
                                                      N_particles=N_particles)
 
     #### RUN MCDC-SIMULATION
-    #if os.path.exists(path_config_file.replace('.conf', '_DWI.bfloat')):
-    #    print(f'{path_config_file} was already run... will therefore be skipped...')
     if path_config_file == None:
         continue
     else:
