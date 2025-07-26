@@ -7,3 +7,4 @@ ipywidgets==7.7.2
 ipympl
 scikit-learn
 notebook
+torch

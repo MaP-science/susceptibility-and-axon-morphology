@@ -53,11 +53,6 @@ check_rogue = sys.argv[3] == 'True'
 
 #### PATHS #####################################################################
 
-# tag_signals = '-max_iter_rough=500-max_iter_fine=1500'
-# tag_signals = '-max_iter_rough=15000-max_iter_fine=5000'
-# tag_signals = '-max_iter_rough=50000-max_iter_fine=15000'
-# tag_signals = '-max_iter_rough=50000-max_iter_fine=150000'
-# tag_signals = '-max_iter_rough=75000-max_iter_fine=5000'
 tag_signals = sys.argv[4]
 tag_scheme = sys.argv[5]
 
@@ -74,15 +69,14 @@ path_pattern_out = f'{path_project}/data/MCDC/{name_experiment}'
 
 path_substrates = os.path.join(path_home, 'projects', name_project, 'substrates')
 
-name_substrate_type = sys.argv[2]#['synchrotron-G1-z_aligned']#, 'synchrotron-G3-z_aligned', 'synchrotron-G4-z_aligned', 'synchrotron-G5-z_aligned', 'synchrotron-G6-z_aligned']
+name_substrate_type = sys.argv[2] # ['G1-z_aligned']#, 'G3-z_aligned', 'G4-z_aligned', 'G5-z_aligned', 'G6-z_aligned']
 
-# name_scheme_file = 'n_shells=9-n_directions=21-TE=0.036.scheme'
 name_scheme_file = 'n_shells=7-n_directions=21-TE=0.036-delta=0.0072-Delta=0.0202.scheme'
 
 path_scheme_file = os.path.join(path_project, 'resources', 'DWI', 'schemes', name_scheme_file)
 
 path_data = os.path.join(path_pattern_out, name_substrate_type)
-path_Bfields = os.path.join(path_project, 'substrates', name_substrate_type, 'Bfields'+tag_signals) ####
+path_Bfields = os.path.join(path_project, 'substrates', name_substrate_type, 'Bfields'+tag_signals)
 path_segmentations = os.path.join(path_project, 'substrates', name_substrate_type, 'segmentations')
 names_configs = [name for name in os.listdir(path_data) if '.conf' in name]
 paths_configs = np.sort([os.path.join(path_data, name) for name in names_configs if all([key in name for key in keys_oi_config])])
@@ -128,7 +122,6 @@ for path_config in tqdm(paths_configs):
         continue
 
     path_segmentation = paths_Bfields[0].replace(tag_signals, '').replace('Bfields', 'segmentations').split('-B_x_angle')[0] + '.pt' ####
-    ####path_segmentation = path_segmentation.replace('-inner-', '-')
 
     names_trajectories_files = [f for f in os.listdir(experiment.path_trajectories) if (experiment.rep_tag in f) and ('.traj' in f)]
 

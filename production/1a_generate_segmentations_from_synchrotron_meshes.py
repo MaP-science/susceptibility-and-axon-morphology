@@ -42,12 +42,11 @@ name_substrate_type = sys.argv[2]
 #### SUBSTRATE SPECS ###########################################################
 
 # criteria: has n_voxels_required < 65000000 for buffer = 5*0.0655 for G6s.
-white_list = ['axon06', 'axon08', 'axon12', 'axon13', 'axon14',
-              'axon15', 'axon17', 'axon18', 'axon22', 'axon24', 'axon25',
-              'axon26', 'axon27', 'axon28', 'axon31', 'axon32', 'axon33',
-              'axon34', 'axon38', 'axon40', 'axon41', 'axon43', 'axon45',
-              'axon46', 'axon47', 'axon48', 'axon49', 'axon50', 'axon51',
-              'axon52', 'axon53', 'axon54']
+white_list = ['axon06', 'axon08', 'axon12', 'axon13', 'axon14', 'axon15', 
+              'axon18', 'axon22', 'axon24', 'axon25', 'axon26', 'axon27', 
+              'axon31', 'axon32', 'axon34', 'axon38', 'axon40', 'axon41', 
+              'axon43', 'axon45', 'axon46', 'axon47', 'axon48', 'axon49', 
+              'axon50', 'axon51', 'axon52', 'axon53', 'axon54']
 
 #### segmentation
 res_desired = 0.0655 # [um]
